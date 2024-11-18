@@ -16,7 +16,7 @@ embedding_model = SentenceTransformer('all-MiniLM-L6-v2')
 # Ensure that the ChromaDB client is initialized only once
 if 'chroma_client' not in st.session_state:
     # Use in-memory client instead of persistent file storage
-    st.session_state.chroma_client = Client(memory=True)  # Using in-memory client
+    st.session_state.chroma_client = Client()  # Using in-memory client
 
 # Get Chroma client from session state
 client = st.session_state.chroma_client
