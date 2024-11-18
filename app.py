@@ -3,7 +3,6 @@ import streamlit as st
 from langchain.schema import HumanMessage
 from sentence_transformers import SentenceTransformer
 from chromadb import Client
-from chromadb.config import Settings
 from chromadb.utils.embedding_functions import SentenceTransformerEmbeddingFunction
 import requests
 import datetime
@@ -16,11 +15,8 @@ embedding_model = SentenceTransformer('all-MiniLM-L6-v2')
 
 # Ensure that the ChromaDB client is initialized only once
 if 'chroma_client' not in st.session_state:
-    settings = Settings(
-        chroma_db_impl="duckdb+parquet",  # Using DuckDB as the backend instead of SQLite
-        persist_directory=None  # Disable persistent storage (in-memory mode)
-    )
-    st.session_state.chroma_client = Client(settings)
+    # Use default memory storage (no persistent database)
+    st.session_state.chroma_client = Client()
 
 # Get Chroma client from session state
 client = st.session_state.chroma_client
