@@ -3,3 +3,4 @@ sentence-transformers
 chromadb
 streamlit
 requests
+langchain
