@@ -3,6 +3,7 @@ import streamlit as st
 from langchain.schema import HumanMessage
 from sentence_transformers import SentenceTransformer
 from chromadb import Client
+from chromadb.config import Settings
 from chromadb.utils.embedding_functions import SentenceTransformerEmbeddingFunction
 import requests
 import datetime
@@ -15,8 +16,11 @@ embedding_model = SentenceTransformer('all-MiniLM-L6-v2')
 
 # Ensure that the ChromaDB client is initialized only once
 if 'chroma_client' not in st.session_state:
-    # Use in-memory client instead of persistent file storage
-    st.session_state.chroma_client = Client()  # Using in-memory client
+    settings = Settings(
+        chroma_db_impl="duckdb+parquet",  # Using DuckDB as the backend instead of SQLite
+        persist_directory=None  # Disable persistent storage (in-memory mode)
+    )
+    st.session_state.chroma_client = Client(settings)
 
 # Get Chroma client from session state
 client = st.session_state.chroma_client
@@ -54,12 +58,15 @@ def store_real_estate_info_in_db():
 
     if real_estate_document:
         document_id = f"real_estate_info_{datetime.datetime.now().strftime('%Y%m%d%H%M%S')}"
-        collection.add(
-            documents=[real_estate_document],
-            metadatas=[{'source': 'real_estate_search', 'date': datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}],
-            ids=[document_id]
-        )
-        print("Real estate information successfully stored in ChromaDB.")
+        try:
+            collection.add(
+                documents=[real_estate_document],
+                metadatas=[{'source': 'real_estate_search', 'date': datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}],
+                ids=[document_id]
+            )
+            print("Real estate information successfully stored in ChromaDB.")
+        except Exception as e:
+            print(f"Error storing document in ChromaDB: {e}")
     else:
         print("No real estate information retrieved.")
 
@@ -81,7 +88,7 @@ You are a real estate AI assistant. Your knowledge covers the real estate market
 
 # Function to query the vector database for relevant documents
 def query_vector_db(query, n_results=3):
-    results = collection.query(query_texts=[query], n_results=n_results)
+    results = collection.query(query_texts=[query], n_results=n_results)  # Use the new query method
     return results['documents']  # Return all top n results as context
 
 # Input for new user prompt
