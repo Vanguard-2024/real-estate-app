@@ -15,7 +15,8 @@ embedding_model = SentenceTransformer('all-MiniLM-L6-v2')
 
 # Ensure that the ChromaDB client is initialized only once
 if 'chroma_client' not in st.session_state:
-    st.session_state.chroma_client = Client()  # Updated Client() initialization
+    # Use in-memory client instead of persistent file storage
+    st.session_state.chroma_client = Client(memory=True)  # Using in-memory client
 
 # Get Chroma client from session state
 client = st.session_state.chroma_client
@@ -80,7 +81,7 @@ You are a real estate AI assistant. Your knowledge covers the real estate market
 
 # Function to query the vector database for relevant documents
 def query_vector_db(query, n_results=3):
-    results = collection.query(query_texts=[query], n_results=n_results)  # Use the new query method
+    results = collection.query(query_texts=[query], n_results=n_results)
     return results['documents']  # Return all top n results as context
 
 # Input for new user prompt
