@@ -32,21 +32,38 @@ collection = client.create_collection(
 print(f"New collection '{new_collection_name}' has been created.")
 
 # Function to perform Google search using the Serper API and gather real estate data
+# Function to perform Google search using multiple queries
 def fetch_real_estate_info():
-    query = "real estate news market trends investment upto Today"
     api_key = "b4360a6824b8e1af6c15c69528fdf8269808e892"  # Replace with your Serper API key
+    base_url = "https://api.serper.dev/search"
     
-    # Call the Serper API for a Google search
-    url = f"https://api.serper.dev/search?api_key={api_key}&q={query}"
-    response = requests.get(url)
+    # List of queries for comprehensive data
+    queries = [
+        "real estate market trends 2024 site:.gov OR site:.edu OR site:.org",
+        "housing market predictions 2024 investment opportunities",
+        "current property values and mortgage rates 2024",
+        "latest real estate news 2024 housing supply and demand",
+        "real estate forecast 2024 region-specific analysis USA",
+    ]
+    
+    snippets = []
+    
+    # Loop through each query and collect results
+    for query in queries:
+        url = f"{base_url}?api_key={api_key}&q={query}"
+        response = requests.get(url)
+        
+        if response.status_code == 200:
+            data = response.json()
+            # Extract snippets from the search results
+            snippets.extend([result.get('snippet', '') for result in data.get("organic", [])])
+        else:
+            print(f"Failed to fetch data for query: {query}. Status Code: {response.status_code}")
+    
+    # Combine all snippets into a single document
+    document = "\n\n".join(snippets)
+    return document if snippets else "Sorry, no real estate information could be retrieved."
 
-    if response.status_code == 200:
-        data = response.json()
-        snippets = [result.get('snippet', '') for result in data.get("organic", [])]
-        document = "\n\n".join(snippets)
-        return document
-    else:
-        return "Sorry, I couldn't retrieve real estate information."
 
 # Function to store real estate information in ChromaDB
 def store_real_estate_info_in_db():
